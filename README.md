@@ -38,6 +38,8 @@ Allowed values of :method are: :plain, :ssl, :tls.
   Use them to initialize a SASL connection to server. If you are not familiar with these authentication methods, 
   please just avoid them.
 
+:attributes_filter is optional. It accepts a list of attributes to fetch from LDAP. All attributes are fetched by default.
+
 Direct users to '/auth/ldap' to have them authenticated via your company's LDAP server.
 
 
