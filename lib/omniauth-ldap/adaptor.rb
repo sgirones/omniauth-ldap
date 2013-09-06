@@ -65,6 +65,7 @@ module OmniAuth
       #:base => "dc=yourcompany, dc=com",
       # :filter => "(mail=#{user})",
       # :password => psw
+      # :attributes
       def bind_as(args = {})        
         result = false
         @connection.open do |me|

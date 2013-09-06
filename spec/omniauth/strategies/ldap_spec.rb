@@ -160,6 +160,46 @@ describe "OmniAuth::Strategies::LDAP" do
         auth_hash.info.image.should == 'http://www.intridea.com/ping.jpg'
         auth_hash.info.description.should == 'omniauth-ldap'
       end
+
+      context 'when fetching only some attributes' do
+        let(:auth_hash){ last_request.env['omniauth.auth'] }
+
+        before(:each) do
+          @adaptor.stub(:bind_as).and_return({
+                                              :dn   => ['cn=ping, dc=intridea, dc=com'],
+                                              :mail => ['ping@intridea.com'],
+                                              :givenname => ['Ping'], :sn => ['Yu'],
+                                              :telephonenumber => ['555-555-5555'],
+                                              :mobile => ['444-444-4444'],
+                                              :uid => ['ping'],
+                                              :title => ['dev'],
+                                              :address =>[ 'k street'],
+                                              :l => ['Washington'], :st => ['DC'], :co => ["U.S.A"], :postofficebox => ['20001']
+          })
+
+          post('/auth/ldap/callback', {:username => 'ping', :password => 'password'})
+        end
+
+        it 'should not redirect to error page' do
+          last_response.should_not be_redirect
+        end
+
+        it 'should map user info to Auth Hash' do
+          auth_hash.uid.should == 'cn=ping, dc=intridea, dc=com'
+          auth_hash.info.email.should == 'ping@intridea.com'
+          auth_hash.info.first_name.should == 'Ping'
+          auth_hash.info.last_name.should == 'Yu'
+          auth_hash.info.phone.should == '555-555-5555'
+          auth_hash.info.mobile.should == '444-444-4444'
+          auth_hash.info.nickname.should == 'ping'
+          auth_hash.info.title.should == 'dev'
+          auth_hash.info.location.should == "k street, Washington, DC, U.S.A 20001"
+          auth_hash.info.url.should == nil
+          auth_hash.info.image.should == nil
+          auth_hash.info.description.should == nil
+        end
+      end
+
     end
   end
 end

@@ -24,6 +24,7 @@ module OmniAuth
       option :method, :plain
       option :uid, 'sAMAccountName'
       option :name_proc, lambda {|n| n}
+      option :attributes_filter, [] # Fetch all attributes by default
 
       def request_phase
         OmniAuth::LDAP::Adaptor.validate @options
@@ -39,7 +40,17 @@ module OmniAuth
 
         return fail!(:missing_credentials) if missing_credentials?
         begin
-          @ldap_user_info = @adaptor.bind_as(:filter => Net::LDAP::Filter.eq(@adaptor.uid, @options[:name_proc].call(request['username'])),:size => 1, :password => request['password'])
+
+          bind_opts = {
+            :filter => Net::LDAP::Filter.eq(@adaptor.uid, @options[:name_proc].call(request['username'])),
+            :size => 1,
+            :password => request['password'],
+          }
+
+          bind_opts[:attributes] = @options[:attributes_filter] unless @options[:attributes_filter].empty?
+
+          @ldap_user_info = @adaptor.bind_as(bind_opts)
+          
           return fail!(:invalid_credentials) if !@ldap_user_info
 
           @user_info = self.class.map_user(@@config, @ldap_user_info)
